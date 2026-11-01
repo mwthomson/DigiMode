@@ -1,0 +1,193 @@
+# DigiMode config. Edit with "Programs…" in the tray menu, or by hand and then
+# "Reload config".
+#
+# [services.X]  something DigiMode can start/stop
+#   cmd    = shell command to start it
+#   match  = regex for `pgrep -f` to tell if it's running (defaults to cmd)
+#   port   = TCP port to wait for after starting (optional)
+#   group  = starting one stops any other running service in the same group
+#            (e.g. two programs that can't share the HF sound card)
+#   needs  = services to start first
+#
+# [[presets]]  one click in the tray menu
+#   app, name  = app button -> mode
+#   start      = services to bring up (their `needs` come along automatically)
+#   freq, mode = optional; tuned through flrig (Hz, flrig mode name)
+#   mode "data" means data_mode below. Set it to your rig's data/USB-data mode
+#   as flrig names it; if it's wrong, DigiMode lists your rig's modes.
+#
+# Sound card: ardopcf below uses the ALSA card named CODEC, which is what most
+# radios and interfaces with built-in USB audio show up as. `arecord -l` lists
+# yours; use plughw:CARD=<name>,DEV=0.
+# VARA: set the path to where VARA.exe is installed in your Wine prefix
+# (Bottles users: flatpak run --command=bottles-cli com.usebottles.bottles
+# run -b <bottle> -p <program>).
+
+flrig_url = "http://127.0.0.1:12345"
+data_mode = "USB"
+
+[services.flrig]
+cmd   = "flrig"
+match = "(^|/)flrig( |$)"
+port  = 12345
+
+[services.rigctld]
+cmd   = "rigctld -m 4 -r localhost:12345 -t 4532"
+match = "(^|/)rigctld( |$)"
+port  = 4532
+needs = ["flrig"]
+
+[services.ardopcf]
+cmd   = "ardopcf 8515 plughw:CARD=CODEC,DEV=0 plughw:CARD=CODEC,DEV=0"
+match = "(^|/)ardopcf( |$)"
+port  = 8515
+group = "hf-audio"
+needs = ["flrig"]
+
+[services.vara-hf]
+cmd   = "wine ~/.wine/drive_c/VARA/VARA.exe"
+match = '\\VARA\.exe'
+port  = 8300
+group = "hf-audio"
+needs = ["flrig"]
+
+[services.vara-fm]
+cmd   = "wine ~/.wine/drive_c/VARA\\ FM/VARAFM.exe"
+match = 'VARAFM\.exe'
+port  = 8300
+group = "vhf-audio"
+
+[services.direwolf]
+cmd   = "direwolf"
+match = "(^|/)direwolf( |$)"
+port  = 8000
+group = "vhf-audio"
+
+[services.pat-ardop]
+cmd   = "pat --listen ardop http"
+match = "(^|/)pat --listen ardop http"
+group = "pat"
+needs = ["rigctld", "ardopcf"]
+
+[services.pat-vara-hf]
+cmd   = "pat --listen varahf http"
+match = "(^|/)pat --listen varahf http"
+group = "pat"
+needs = ["rigctld", "vara-hf"]
+
+[services.pat-vara-fm]
+cmd   = "pat --listen varafm http"
+match = "(^|/)pat --listen varafm http"
+group = "pat"
+needs = ["vara-fm"]
+
+[services.pat-packet]
+cmd   = "pat --listen ax25 http"
+match = "(^|/)pat --listen ax25 http"
+group = "pat"
+needs = ["direwolf"]
+
+[services.pat-telnet]
+cmd   = "pat http"
+match = "(^|/)pat http$"
+group = "pat"
+
+[services.js8call]
+cmd   = "js8call"
+match = "js8call"
+group = "hf-audio"
+needs = ["flrig"]
+
+[services.wsjtx]
+cmd   = "wsjtx"
+match = "(^|/)wsjtx( |$)"
+group = "hf-audio"
+needs = ["flrig"]
+
+[services.fldigi]
+cmd   = "fldigi"
+match = "(^|/)fldigi( |$)"
+group = "hf-audio"
+needs = ["flrig"]
+
+[[presets]]
+app = "Pat"
+name = "ARDOP"
+start = ["pat-ardop"]
+mode = "data"
+
+[[presets]]
+app = "Pat"
+name = "VARA HF"
+start = ["pat-vara-hf"]
+mode = "data"
+
+[[presets]]
+app = "Pat"
+name = "VARA FM"
+start = ["pat-vara-fm"]
+
+[[presets]]
+app = "Pat"
+name = "Packet"
+start = ["pat-packet"]
+
+[[presets]]
+app = "Pat"
+name = "Telnet"
+start = ["pat-telnet"]
+
+[[presets]]
+app = "JS8Call"
+name = "JS8"
+start = ["js8call"]
+mode = "data"
+
+[[presets]]
+app = "WSJT-X"
+name = "FT8 20m"
+start = ["wsjtx"]
+freq = 14074000
+mode = "data"
+
+[[presets]]
+app = "WSJT-X"
+name = "FT8 40m"
+start = ["wsjtx"]
+freq = 7074000
+mode = "data"
+
+[[presets]]
+app = "WSJT-X"
+name = "WSPR 20m"
+start = ["wsjtx"]
+freq = 14095600
+mode = "data"
+
+[[presets]]
+app = "WSJT-X"
+name = "WSPR 40m"
+start = ["wsjtx"]
+freq = 7038600
+mode = "data"
+
+[[presets]]
+app = "Fldigi"
+name = "PSK31 20m"
+start = ["fldigi"]
+freq = 14070000
+mode = "data"
+
+[[presets]]
+app = "Fldigi"
+name = "RTTY 20m"
+start = ["fldigi"]
+freq = 14080000
+mode = "data"
+
+[[presets]]
+app = "Fldigi"
+name = "Olivia 20m"
+start = ["fldigi"]
+freq = 14072000
+mode = "data"
