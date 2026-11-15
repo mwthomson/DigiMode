@@ -26,7 +26,22 @@ DigiMode/digimode.py --install --autostart  # ...and start at login
 
 The first run creates `~/.config/digimode/modes.toml` from
 `modes.default.toml`. Set your sound card, VARA path and the rig's
-`data_mode` there, or use **Programs…** in the tray menu.
+`data_mode` there, or use **Settings…** in the tray menu.
+
+## Settings
+
+**Settings…** has two tabs:
+
+- **Applications** are the programs you operate (Pat, WSJT-X, Fldigi…). Each
+  has a list of modes, and each mode has an optional frequency and rig mode.
+- **Support programs** run in the background (flrig, rigctld, modems).
+
+To run the same application with two setups, select it and press
+**Duplicate**, e.g. turn Fldigi into *Fldigi (HF)* and *Fldigi (VHF)*. Give
+each copy its own start command (`fldigi --config-dir ~/.fldigi-vhf`) and a
+"Running when matches" pattern that fits only that command
+(`fldigi --config-dir \S*fldigi-vhf`), so DigiMode can tell them apart.
+Settings warns on save if two programs would be confused.
 
 ## License
 
