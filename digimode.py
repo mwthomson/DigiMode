@@ -9,6 +9,7 @@
 # any later version. It is distributed WITHOUT ANY WARRANTY; see the LICENSE
 # file or <https://www.gnu.org/licenses/> for details.
 import copy
+import fcntl
 import json
 import os
 import re
@@ -270,7 +271,19 @@ def clashes(cfg):
     return out
 
 
+def single_instance():
+    """Exit if DigiMode is already running (a second tray icon looks like Quit failed)."""
+    LOGDIR.mkdir(parents=True, exist_ok=True)
+    lock = open(LOGDIR / "digimode.lock", "w")
+    try:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        sys.exit("DigiMode is already running (look for its tray icon).")
+    return lock  # held until the process exits
+
+
 def gui():
+    lock = single_instance()  # noqa: F841
     from PyQt5.QtCore import QObject, Qt, QTimer, pyqtSignal
     from PyQt5.QtGui import QIcon
     from PyQt5.QtWidgets import (QApplication, QDialog, QDialogButtonBox, QFormLayout,
